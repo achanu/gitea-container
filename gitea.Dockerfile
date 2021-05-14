@@ -35,9 +35,13 @@ RUN \
   && \
   dnf clean all && \
   rm -rf /rootfs/var/cache/* && \
-  echo "giteauser:x:1000:1000::/home:/sbin/nologin" >> /rootfs/etc/passwd && \
+  echo "giteauser:x:1000:1000::/var/lib/gitea:/sbin/nologin" >> /rootfs/etc/passwd && \
   echo "giteagroup:x:1000:" >> /rootfs/etc/group && \
-  echo "giteauser:!!:18757:0:99999:7:::" >> /rootfs/etc/shadow
+  echo "giteauser:!!:18757:0:99999:7:::" >> /rootfs/etc/shadow && \
+  mkdir -pv /rootfs/var/lib/gitea && \
+  chown -c 1000:1000 /rootfs/var/lib/gitea
+
+COPY --from=compile /gitea/gitea /rootfs/usr/local/bin/gitea
 
 
 FROM scratch AS micro
@@ -45,8 +49,6 @@ LABEL maintainer="Alexandre Chanu alexandre.chanu@gmail.com"
 
 COPY --from=build /rootfs/ /
 
-COPY --from=compile /gitea/gitea /usr/local/bin/gitea
-
-#USER giteauser
+USER giteauser
 
 CMD ["/usr/local/bin/gitea"]
